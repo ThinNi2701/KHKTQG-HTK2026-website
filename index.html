@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bài kiểm tra trắc nghiệm</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- PHẦN GIỚI THIỆU -->
+  <section id="intro">
+    <h1>Bài kiểm tra 40 câu trắc nghiệm</h1>
+    <p>Hãy trả lời tất cả câu hỏi và xem kết quả của bạn.</p>
+    <p><strong>Lưu ý:</strong> Mỗi câu đúng được 1 điểm. Tổng điểm tối đa là 40 điểm.</p>
+    <button onclick="startQuiz()">Bắt đầu làm bài</button>
+  </section>
+
+  <!-- PHẦN LÀM BÀI -->
+  <section id="quiz" class="hidden">
+    <h2>Trả lời các câu hỏi sau:</h2>
+    <form id="quizForm"></form>
+    <button onclick="submitQuiz()">Nộp bài</button>
+  </section>
+
+  <!-- PHẦN KẾT QUẢ -->
+  <section id="result" class="hidden">
+    <h2>Kết quả của bạn</h2>
+    <p id="score"></p>
+    <p id="evaluation"></p>
+    <button onclick="location.reload()">Làm lại</button>
+  </section>
+
+  <script src="script.js"></script>
+</body>
+</html>
