@@ -3,10 +3,55 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { questions, scaleOptions } from '../data/questions';
 
 export default function QuizPage({ onSubmit }) {
-  const [answers, setAnswers] = useState({});
-  const [currentQuestion, setCurrentQuestion] = useState(0);
+  // Load saved progress from localStorage
+  const loadProgress = () => {
+    try {
+      const savedAnswers = localStorage.getItem('quizAnswers');
+      const savedQuestion = localStorage.getItem('quizCurrentQuestion');
+      const savedStartTime = localStorage.getItem('quizStartTime');
+      
+      let startTime;
+      let timeLeft;
+      
+      if (savedStartTime) {
+        // Calculate elapsed time since quiz started
+        startTime = parseInt(savedStartTime);
+        const elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
+        timeLeft = Math.max(0, (30 * 60) - elapsedSeconds);
+      } else {
+        // First time starting quiz
+        startTime = Date.now();
+        timeLeft = 30 * 60;
+        localStorage.setItem('quizStartTime', startTime.toString());
+      }
+      
+      return {
+        answers: savedAnswers ? JSON.parse(savedAnswers) : {},
+        currentQuestion: savedQuestion ? parseInt(savedQuestion) : 0,
+        timeLeft: timeLeft
+      };
+    } catch (error) {
+      const startTime = Date.now();
+      localStorage.setItem('quizStartTime', startTime.toString());
+      return {
+        answers: {},
+        currentQuestion: 0,
+        timeLeft: 30 * 60
+      };
+    }
+  };
+
+  const savedProgress = loadProgress();
+  const [answers, setAnswers] = useState(savedProgress.answers);
+  const [currentQuestion, setCurrentQuestion] = useState(savedProgress.currentQuestion);
   const [isGridCollapsed, setIsGridCollapsed] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(30 * 60); // 30 minutes in seconds
+  const [timeLeft, setTimeLeft] = useState(savedProgress.timeLeft);
+
+  // Save progress to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('quizAnswers', JSON.stringify(answers));
+    localStorage.setItem('quizCurrentQuestion', currentQuestion.toString());
+  }, [answers, currentQuestion]);
 
   // Timer countdown
   useEffect(() => {
@@ -40,6 +85,10 @@ export default function QuizPage({ onSubmit }) {
         totalScore += answers[index];
       }
     });
+    // Clear saved progress after submitting
+    localStorage.removeItem('quizAnswers');
+    localStorage.removeItem('quizCurrentQuestion');
+    localStorage.removeItem('quizStartTime');
     onSubmit(totalScore);
   };
 

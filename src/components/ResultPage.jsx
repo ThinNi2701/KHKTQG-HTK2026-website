@@ -4,7 +4,7 @@ import Confetti from 'react-confetti';
 import { useState, useEffect } from 'react';
 
 export default function ResultPage({ score, onRestart }) {
-  const [showConfetti, setShowConfetti] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false); 
   const totalQuestions = questions.length;
   const maxScore = totalQuestions * 5; // Tổng điểm tối đa: 40 câu x 5 điểm
   const percentage = Math.round((score / maxScore) * 100);
@@ -157,18 +157,7 @@ export default function ResultPage({ score, onRestart }) {
               />
             </div>
           </div>
-
-          {/* Stats */}
-          <div className="grid grid-cols-2 gap-4 mb-8">
-            <div className={`bg-gradient-to-br ${color} bg-opacity-10 rounded-xl p-4`}>
-              <div className="text-4xl font-bold text-gray-800">{score}</div>
-              <div className="text-sm text-gray-600">Tổng điểm đạt được</div>
-            </div>
-            <div className="bg-blue-50 rounded-xl p-4">
-              <div className="text-4xl font-bold text-blue-600">{maxScore}</div>
-              <div className="text-sm text-gray-600">Tổng điểm tối đa</div>
-            </div>
-          </div>
+          
 
           {/* Button */}
           <motion.button

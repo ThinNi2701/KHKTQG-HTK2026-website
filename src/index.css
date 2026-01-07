@@ -64,10 +64,6 @@ body {
     padding-right: 10vw;
   }
 }
-  backdrop-filter: blur(15px) saturate(180%);
-  -webkit-backdrop-filter: blur(15px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.5);
-}
 
 /* Utility classes */
 .min-h-screen { min-height: 100vh; }
