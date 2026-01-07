@@ -36,7 +36,6 @@ export default function ResultPage({ score, onRestart }) {
     ];
     icon = "🌟";
     color = "from-yellow-400 to-orange-500";
-    setShowConfetti(true);
   } else if (score >= 121) {
     evaluation = "Chỉ số trí tuệ cảm xúc tốt";
     description = "Bạn có khả năng nhận diện và kiểm soát cảm xúc khá tốt, biết giữ bình tĩnh trong những tình huống áp lực.";
@@ -73,10 +72,14 @@ export default function ResultPage({ score, onRestart }) {
   useEffect(() => {
     // Chỉ chạy confetti nếu điểm cao
     if (score >= 161) {
-        setShowConfetti(true);
-        const timer = setTimeout(() => setShowConfetti(false), 5000);
-        return () => clearTimeout(timer);
+      setShowConfetti(true);
+      const timer = setTimeout(() => setShowConfetti(false), 5000);
+      return () => clearTimeout(timer);
     }
+
+    // Đảm bảo tắt confetti nếu điểm thấp hơn ngưỡng
+    setShowConfetti(false);
+    return undefined;
   }, [score]);
 
   // Hàm xử lý gửi dữ liệu lên Google Sheet
