@@ -238,6 +238,7 @@ export default function QuizPage({ onSubmit }) {
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'center',
+          paddingTop: 'clamp(1.5rem, 4vw, 3rem)',
         }}
       >
         <div style={{ display: 'flex', justifyContent: 'center' }}>
