@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 
 export default function AboutPage({ onStartQuiz }) {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 py-12 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-pink-50 py-12 px-4">
       <motion.div
         className="max-w-4xl mx-auto"
         initial={{ opacity: 0, y: 30 }}
@@ -19,7 +19,7 @@ export default function AboutPage({ onStartQuiz }) {
           <h1 className="text-5xl font-black text-gray-800 mb-4">
             📖 Giới thiệu dự án
           </h1>
-          <div className="w-24 h-1 bg-gradient-to-r from-blue-500 to-purple-600 mx-auto rounded-full"></div>
+          <div className="w-24 h-1 bg-gradient-to-r from-blue-500 to-pink-500 mx-auto rounded-full"></div>
         </motion.div>
 
         {/* Content Cards */}
@@ -47,7 +47,7 @@ export default function AboutPage({ onStartQuiz }) {
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.4 }}>
-            <h2 className="text-3xl font-bold text-blue-600 mb-4 flex items-center gap-3">
+            <h2 className="text-3xl font-bold text-pink-500 mb-4 flex items-center gap-3">
               ✨ Tính năng chính
             </h2>
             <ul className="space-y-3 text-lg text-gray-700">

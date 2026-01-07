@@ -1,71 +1,110 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { questions, scaleOptions } from '../data/questions';
 
+const QUIZ_STORAGE_KEY = 'khkt_quiz_progress_v1';
+
 export default function QuizPage({ onSubmit }) {
-  // Load saved progress from localStorage
-  const loadProgress = () => {
+  const [answers, setAnswers] = useState({});
+  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [endTimeMs, setEndTimeMs] = useState(null);
+  const [timeLeft, setTimeLeft] = useState(30 * 60); // seconds
+
+  const answersRef = useRef(answers);
+  useEffect(() => {
+    answersRef.current = answers;
+  }, [answers]);
+
+  // Load progress on mount
+  useEffect(() => {
     try {
-      const savedAnswers = localStorage.getItem('quizAnswers');
-      const savedQuestion = localStorage.getItem('quizCurrentQuestion');
-      const savedStartTime = localStorage.getItem('quizStartTime');
-      
-      let startTime;
-      let timeLeft;
-      
-      if (savedStartTime) {
-        // Calculate elapsed time since quiz started
-        startTime = parseInt(savedStartTime);
-        const elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
-        timeLeft = Math.max(0, (30 * 60) - elapsedSeconds);
-      } else {
-        // First time starting quiz
-        startTime = Date.now();
-        timeLeft = 30 * 60;
-        localStorage.setItem('quizStartTime', startTime.toString());
+      const raw = localStorage.getItem(QUIZ_STORAGE_KEY);
+      if (!raw) {
+        const initialEnd = Date.now() + 30 * 60 * 1000;
+        setEndTimeMs(initialEnd);
+        setTimeLeft(Math.max(0, Math.floor((initialEnd - Date.now()) / 1000)));
+        return;
       }
-      
-      return {
-        answers: savedAnswers ? JSON.parse(savedAnswers) : {},
-        currentQuestion: savedQuestion ? parseInt(savedQuestion) : 0,
-        timeLeft: timeLeft
-      };
-    } catch (error) {
-      const startTime = Date.now();
-      localStorage.setItem('quizStartTime', startTime.toString());
-      return {
-        answers: {},
-        currentQuestion: 0,
-        timeLeft: 30 * 60
-      };
+
+      const parsed = JSON.parse(raw);
+      const savedAnswers = parsed?.answers ?? {};
+      const savedCurrentQuestion = Number.isFinite(parsed?.currentQuestion)
+        ? parsed.currentQuestion
+        : 0;
+      const savedEndTimeMs = Number.isFinite(parsed?.endTimeMs) ? parsed.endTimeMs : null;
+
+      if (!savedEndTimeMs) {
+        const initialEnd = Date.now() + 30 * 60 * 1000;
+        setAnswers(savedAnswers);
+        setCurrentQuestion(savedCurrentQuestion);
+        setEndTimeMs(initialEnd);
+        setTimeLeft(Math.max(0, Math.floor((initialEnd - Date.now()) / 1000)));
+        return;
+      }
+
+      setAnswers(savedAnswers);
+      setCurrentQuestion(savedCurrentQuestion);
+      setEndTimeMs(savedEndTimeMs);
+      setTimeLeft(Math.max(0, Math.floor((savedEndTimeMs - Date.now()) / 1000)));
+    } catch {
+      // If storage is corrupted, reset progress
+      try {
+        localStorage.removeItem(QUIZ_STORAGE_KEY);
+      } catch {
+        // ignore
+      }
+      const initialEnd = Date.now() + 30 * 60 * 1000;
+      setEndTimeMs(initialEnd);
+      setTimeLeft(Math.max(0, Math.floor((initialEnd - Date.now()) / 1000)));
     }
-  };
+  }, []);
 
-  const savedProgress = loadProgress();
-  const [answers, setAnswers] = useState(savedProgress.answers);
-  const [currentQuestion, setCurrentQuestion] = useState(savedProgress.currentQuestion);
-  const [isGridCollapsed, setIsGridCollapsed] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(savedProgress.timeLeft);
-
-  // Save progress to localStorage whenever it changes
+  // Persist progress (excluding timeLeft to avoid writes every second)
   useEffect(() => {
-    localStorage.setItem('quizAnswers', JSON.stringify(answers));
-    localStorage.setItem('quizCurrentQuestion', currentQuestion.toString());
-  }, [answers, currentQuestion]);
-
-  // Timer countdown
-  useEffect(() => {
-    if (timeLeft <= 0) {
-      handleSubmit();
-      return;
+    if (!endTimeMs) return;
+    try {
+      localStorage.setItem(
+        QUIZ_STORAGE_KEY,
+        JSON.stringify({
+          answers,
+          currentQuestion,
+          endTimeMs,
+        })
+      );
+    } catch {
+      // ignore storage write errors
     }
+  }, [answers, currentQuestion, endTimeMs]);
 
-    const timer = setInterval(() => {
-      setTimeLeft(prev => prev - 1);
-    }, 1000);
+  // Timer countdown (based on endTimeMs so it resumes correctly)
+  useEffect(() => {
+    if (!endTimeMs) return;
 
+    const tick = () => {
+      const secondsLeft = Math.max(0, Math.floor((endTimeMs - Date.now()) / 1000));
+      setTimeLeft(secondsLeft);
+      if (secondsLeft <= 0) {
+        handleSubmit(true);
+      }
+    };
+
+    tick();
+    const timer = setInterval(tick, 1000);
     return () => clearInterval(timer);
-  }, [timeLeft]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [endTimeMs]);
+
+  // Lock body scroll when menu is open (so overlay feels truly on-top)
+  useEffect(() => {
+    if (!isMenuOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [isMenuOpen]);
 
   // Format time as MM:SS
   const formatTime = (seconds) => {
@@ -78,17 +117,21 @@ export default function QuizPage({ onSubmit }) {
     setAnswers({ ...answers, [questionIndex]: value });
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = (isAutoSubmit = false) => {
     let totalScore = 0;
     questions.forEach((q, index) => {
-      if (answers[index] !== undefined) {
-        totalScore += answers[index];
+      const a = answersRef.current[index];
+      if (a !== undefined) {
+        totalScore += a;
       }
     });
-    // Clear saved progress after submitting
-    localStorage.removeItem('quizAnswers');
-    localStorage.removeItem('quizCurrentQuestion');
-    localStorage.removeItem('quizStartTime');
+
+    try {
+      localStorage.removeItem(QUIZ_STORAGE_KEY);
+    } catch {
+      // ignore
+    }
+
     onSubmit(totalScore);
   };
 
@@ -96,6 +139,83 @@ export default function QuizPage({ onSubmit }) {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 py-6 px-4">
+      {/* Fixed Timer Overlay */}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="glass-light rounded-2xl shadow-2xl p-4"
+        style={{
+          position: 'fixed',
+          top: 84,
+          right: 24,
+          zIndex: 2000,
+          maxWidth: 220,
+          background: 'rgba(255, 255, 255, 0.55)',
+          backdropFilter: 'blur(18px) saturate(180%)',
+          WebkitBackdropFilter: 'blur(18px) saturate(180%)',
+          border: '1px solid rgba(255, 255, 255, 0.35)',
+          boxShadow: '0 12px 30px rgba(0, 0, 0, 0.18)',
+        }}
+      >
+        <div className="text-center">
+          <h4 className="text-xs font-semibold text-gray-600 mb-1">Thời gian còn lại</h4>
+          <div
+            className={`font-bold ${
+            timeLeft < 300 ? 'text-red-500' : 'text-blue-600'
+          }`}
+            style={{ fontSize: 'clamp(1.1rem, 2.5vw, 1.8rem)' }}
+          >
+            {formatTime(timeLeft)}
+          </div>
+          {timeLeft < 300 && (
+            <p className="text-xs text-red-500 mt-1 font-medium">⚠️ Sắp hết giờ!</p>
+          )}
+        </div>
+      </motion.div>
+
+      {/* AssistiveTouch Style Menu Button */}
+      <motion.button
+        onClick={() => setIsMenuOpen(!isMenuOpen)}
+        className="rounded-full shadow-2xl"
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.9 }}
+        initial={{ opacity: 0, scale: 0 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ type: "spring", stiffness: 260, damping: 20 }}
+        style={{
+          position: 'fixed',
+          bottom: 96,
+          right: 24,
+          zIndex: 2000,
+          width: 56,
+          height: 56,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: 'rgba(17, 24, 39, 0.82)',
+          backdropFilter: 'blur(12px) saturate(180%)',
+          WebkitBackdropFilter: 'blur(12px) saturate(180%)',
+          border: '1px solid rgba(255, 255, 255, 0.18)',
+          boxShadow: '0 10px 30px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.08) inset',
+        }}
+        aria-label="Mở menu câu hỏi"
+      >
+        <svg 
+          width="28" 
+          height="28" 
+          viewBox="0 0 24 24" 
+          fill="none" 
+          stroke="white" 
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <line x1="3" y1="6" x2="21" y2="6" />
+          <line x1="3" y1="12" x2="21" y2="12" />
+          <line x1="3" y1="18" x2="21" y2="18" />
+        </svg>
+      </motion.button>
+
       {/* Progress Bar */}
       <div className="max-w-7xl mx-auto mb-6">
         <div className="glass rounded-full h-4 overflow-hidden shadow-inner">
@@ -111,9 +231,16 @@ export default function QuizPage({ onSubmit }) {
         </p>
       </div>
 
-      <div className="max-w-7xl mx-auto px-8">
-        <div style={{ display: 'flex', gap: '24px', alignItems: 'flex-start' }}>
-          {/* LEFT SIDE - Question Card (Larger) */}
+      <div
+        className="max-w-4xl mx-auto px-4 md:px-8"
+        style={{
+          minHeight: 'calc(100vh - 220px)',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+        }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'center' }}>
           <AnimatePresence mode="wait">
             <motion.div
               key={currentQuestion}
@@ -121,159 +248,271 @@ export default function QuizPage({ onSubmit }) {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -100 }}
               transition={{ duration: 0.3 }}
-              style={{ flex: '1' }}
+              style={{ width: '100%' }}
             >
-              <div className="glass-light rounded-2xl shadow-xl p-12">
-                <h3 className="text-3xl font-bold text-gray-800 mb-8" style={{ lineHeight: '1.4' }}>
-                  Câu {currentQuestion + 1}: {questions[currentQuestion].question}
-                </h3>
-
-                <div className="space-y-3">
-                  {scaleOptions.map((option, index) => {
-                    const isSelected = answers[currentQuestion] === option.value;
-                    return (
-                      <motion.button
-                        key={index}
-                        onClick={() => handleAnswer(currentQuestion, option.value)}
-                        className={`w-full p-5 text-left rounded-xl transition-all min-h-[80px] flex items-center ${
-                          isSelected
-                            ? 'bg-blue-500 shadow-md'
-                            : 'bg-gray-100 hover:bg-gray-200'
-                        }`}
-                        whileHover={{ scale: 1.01 }}
-                        whileTap={{ scale: 0.99 }}
-                      >
-                        <div className="flex items-center justify-between w-full">
-                          <div className="flex items-center gap-4 flex-1">
-                            <div className={`w-6 h-10 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
-                              isSelected 
-                                ? 'border-white bg-white' 
-                                : 'border-gray-400 bg-white'
-                            }`}>
-                              {isSelected && (
-                                <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-                              )}
-                            </div>
-                            <span className={`text-xl font-medium ${
-                              isSelected ? 'text-white' : 'text-gray-700'
-                            }`}>
-                              {option.label}
-                            </span>
-                          </div>
-                          <span className={`text-lg font-semibold px-4 py-1.5 flex-shrink-0 ${
-                            isSelected
-                              ? 'text-white'
-                              : 'text-gray-600'
-                          }`}>
-                            {option.value} điểm
-                          </span>
-                        </div>
-                      </motion.button>
-                    );
-                  })}
-                </div>
-
-                {/* Navigation Buttons */}
-                <div className="flex justify-between gap-4 mt-8">
-                  <motion.button
-                    onClick={() => setCurrentQuestion(Math.max(0, currentQuestion - 1))}
-                    disabled={currentQuestion === 0}
-                    className="px-8 py-4 bg-gray-200 text-gray-700 rounded-2xl font-semibold text-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                    whileHover={{ scale: currentQuestion > 0 ? 1.05 : 1 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    ← Câu trước
-                  </motion.button>
-
-                  <motion.button
-                    onClick={() => setCurrentQuestion(currentQuestion + 1)}
-                    disabled={currentQuestion >= questions.length - 1}
-                    className="px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-2xl font-semibold text-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                    whileHover={{ scale: currentQuestion < questions.length - 1 ? 1.05 : 1 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    Câu tiếp →
-                  </motion.button>
-                </div>
-              </div>
-            </motion.div>
-          </AnimatePresence>
-
-          {/* RIGHT SIDE - Question Grid (Sidebar) */}
-          <div style={{ width: '320px', position: 'sticky', top: '24px' }}>
-            {/* Timer Display */}
-            <div className="glass-light rounded-2xl shadow-lg p-6 mb-4">
-              <div className="text-center">
-                <h4 className="text-sm font-semibold text-gray-600 mb-2">Thời gian còn lại</h4>
-                <div className={`text-4xl font-bold ${
-                  timeLeft < 300 ? 'text-red-500' : 'text-blue-600'
-                }`}>
-                  {formatTime(timeLeft)}
-                </div>
-                {timeLeft < 300 && (
-                  <p className="text-sm text-red-500 mt-2 font-medium">⚠️ Sắp hết giờ!</p>
-                )}
-              </div>
-            </div>
-
-            <div className="glass-light rounded-2xl shadow-lg p-6" style={{ marginBottom: '16px' }}>
-              <div 
-                className="flex items-center justify-between mb-4 cursor-pointer"
-                onClick={() => setIsGridCollapsed(!isGridCollapsed)}
+              <div className="glass-light rounded-2xl shadow-xl p-4 md:p-8 lg:p-12">
+              <h3
+                className="font-bold text-gray-800 mb-4 md:mb-6 lg:mb-8"
+                style={{
+                  lineHeight: '1.4',
+                  fontSize: 'clamp(1.05rem, 2.4vw, 1.9rem)',
+                }}
               >
-                <h4 className="text-xl font-bold text-gray-700">Danh sách câu hỏi</h4>
-                <motion.div
-                  animate={{ rotate: isGridCollapsed ? 180 : 0 }}
-                  transition={{ duration: 0.3 }}
-                  className="text-2xl text-gray-700"
-                >
-                  ▼
-                </motion.div>
-              </div>
-              
-              {!isGridCollapsed && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  transition={{ duration: 0.3 }}
-                  style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', justifyItems: 'center' }}
-                >
-                  {questions.map((_, index) => (
+                Câu {currentQuestion + 1}: {questions[currentQuestion].question}
+              </h3>
+
+              <div className="space-y-2 md:space-y-3">
+                {scaleOptions.map((option, index) => {
+                  const isSelected = answers[currentQuestion] === option.value;
+                  return (
                     <motion.button
                       key={index}
-                      onClick={() => setCurrentQuestion(index)}
-                      style={{ width: '60px', height: '60px', borderRadius: '16px' }}
-                      className={`font-semibold text-lg ${
-                        currentQuestion === index
-                          ? 'bg-purple-600 text-white'
-                          : answers[index] !== undefined
-                          ? 'bg-green-100 text-green-700 border-2 border-green-300'
-                          : 'bg-gray-100 text-gray-600'
+                      onClick={() => handleAnswer(currentQuestion, option.value)}
+                      className={`w-full text-left rounded-xl transition-all flex items-center ${
+                        isSelected
+                          ? 'bg-blue-500 shadow-md'
+                          : 'bg-gray-100 hover:bg-gray-200'
                       }`}
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.9 }}
+                      style={{
+                        padding: 'clamp(1.0rem, 2.0vw, 1.45rem) clamp(1.05rem, 2.4vw, 1.7rem)',
+                        minHeight: 'clamp(88px, 10vw, 124px)',
+                        border: 'none',
+                        outline: 'none',
+                        boxShadow: isSelected
+                          ? undefined
+                          : '0 10px 24px rgba(15, 23, 42, 0.06)',
+                      }}
+                      whileHover={{ scale: 1.01 }}
+                      whileTap={{ scale: 0.99 }}
                     >
-                      {index + 1}
+                      <div className="flex items-center justify-between w-full">
+                        <div className="flex items-center flex-1" style={{ gap: 'clamp(0.6rem, 1.2vw, 1rem)' }}>
+                          <div className={`rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
+                            isSelected 
+                              ? 'border-white bg-white' 
+                              : 'border-gray-400 bg-white'
+                          }`}
+                          style={{
+                            width: 'clamp(22px, 2.2vw, 28px)',
+                            height: 'clamp(22px, 2.2vw, 28px)',
+                          }}
+                          >
+                            {isSelected && (
+                              <div
+                                className="rounded-full bg-blue-500"
+                                style={{
+                                  width: 'clamp(10px, 1.2vw, 14px)',
+                                  height: 'clamp(10px, 1.2vw, 14px)',
+                                }}
+                              ></div>
+                            )}
+                          </div>
+                          <span className={`text-sm md:text-lg lg:text-xl font-medium ${
+                            isSelected ? 'text-white' : 'text-gray-700'
+                          }`}
+                          style={{ fontSize: 'clamp(0.92rem, 1.8vw, 1.25rem)' }}
+                          >
+                            {option.label}
+                          </span>
+                        </div>
+                        <span className={`text-xs md:text-base lg:text-lg font-semibold px-2 md:px-3 lg:px-4 py-1 md:py-1.5 flex-shrink-0 ${
+                          isSelected
+                            ? 'text-white'
+                            : 'text-gray-600'
+                        }`}
+                        style={{
+                          fontSize: 'clamp(0.95rem, 1.25vw, 1.15rem)',
+                          padding: 'clamp(0.25rem, 0.6vw, 0.5rem) clamp(0.6rem, 1.2vw, 1rem)',
+                          borderRadius: 9999,
+                          background: isSelected ? 'rgba(255,255,255,0.15)' : 'transparent',
+                        }}
+                        >
+                          {option.value} điểm
+                        </span>
+                      </div>
                     </motion.button>
-                  ))}
-                </motion.div>
-              )}
+                  );
+                })}
+              </div>
+
+              {/* Navigation Buttons */}
+              <div className="mt-8 flex justify-between gap-2 md:gap-4 mt-4 md:mt-6 lg:mt-8">
+                <motion.button
+                  onClick={() => setCurrentQuestion(Math.max(0, currentQuestion - 1))}
+                  disabled={currentQuestion === 0}
+                  className="bg-gray-200 text-gray-700 rounded-xl md:rounded-2xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                  whileHover={{ scale: currentQuestion > 0 ? 1.05 : 1 }}
+                  whileTap={{ scale: 0.95 }}
+                  style={{
+                    padding: 'clamp(0.7rem, 1.5vw, 1.05rem) clamp(1.1rem, 2.4vw, 1.85rem)',
+                    fontSize: 'clamp(0.95rem, 1.5vw, 1.1rem)',
+                    border: 'none',
+                    outline: 'none',
+                  }}
+                >
+                  ← Câu trước
+                </motion.button>
+
+                <motion.button
+                  onClick={() => setCurrentQuestion(currentQuestion + 1)}
+                  disabled={currentQuestion >= questions.length - 1}
+                  className="bg-gradient-to-r from-blue-500 to-pink-500 text-white rounded-xl md:rounded-2xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                  whileHover={{ scale: currentQuestion < questions.length - 1 ? 1.05 : 1 }}
+                  whileTap={{ scale: 0.95 }}
+                  style={{
+                    padding: 'clamp(0.7rem, 1.5vw, 1.05rem) clamp(1.1rem, 2.4vw, 1.85rem)',
+                    fontSize: 'clamp(0.95rem, 1.5vw, 1.1rem)',
+                    border: 'none',
+                    outline: 'none',
+                  }}
+                >
+                  Câu tiếp →
+                </motion.button>
+              </div>
             </div>
-            <div className="flex justify-center">
-            {/* Nút nộp bài - Bên ngoài khung trắng */}
-            <motion.button
-              onClick={handleSubmit}
-              className="block mx-auto h-10 w-full mt-4 py-2.5 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-2xl font-bold text-sm shadow-lg center-block"
-              whileHover={{ scale: 1.03, boxShadow: "0 8px 20px rgba(16, 185, 129, 0.3)" }}
-              whileTap={{ scale: 0.97 }}
-            >
-              ✓ Nộp bài
-            </motion.button>
-            </div>
-          </div>
+            </motion.div>
+          </AnimatePresence>
+        </div>
+
+        {/* Submit Button */}
+        <div className="mt-8 flex justify-center mt-6 md:mt-8">
+          <motion.button
+            onClick={handleSubmit}
+            className="w-full max-w-md px-6 md:px-8 py-3 md:py-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl md:rounded-2xl font-bold text-base md:text-lg shadow-lg"
+            whileHover={{ scale: 1.03, boxShadow: "0 8px 20px rgba(16, 185, 129, 0.3)" }}
+            whileTap={{ scale: 0.97 }}
+            style={{
+              fontSize: 'clamp(0.98rem, 1.8vw, 1.12rem)',
+              paddingTop: 'clamp(0.85rem, 1.8vw, 1.15rem)',
+              paddingBottom: 'clamp(0.85rem, 1.8vw, 1.15rem)',
+              paddingLeft: 'clamp(1.25rem, 2.6vw, 2.2rem)',
+              paddingRight: 'clamp(1.25rem, 2.6vw, 2.2rem)',
+            }}
+          >
+            ✓ Nộp bài
+          </motion.button>
         </div>
       </div>
+
+      {/* Overlay Menu Panel */}
+      {typeof document !== 'undefined' &&
+        createPortal(
+          <AnimatePresence>
+            {isMenuOpen && (
+              <>
+                {/* Backdrop (always overlays current viewport) */}
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  onClick={() => setIsMenuOpen(false)}
+                  style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: 'rgba(0, 0, 0, 0.55)',
+                    backdropFilter: 'blur(4px)',
+                    WebkitBackdropFilter: 'blur(4px)',
+                    zIndex: 3000,
+                  }}
+                />
+
+                {/* Menu drawer (right side) */}
+                <motion.div
+                  initial={{ x: '100%' }}
+                  animate={{ x: 0 }}
+                  exit={{ x: '100%' }}
+                  transition={{ type: 'spring', damping: 26, stiffness: 320 }}
+                  className="glass-light shadow-2xl"
+                  style={{
+                    position: 'fixed',
+                    top: 0,
+                    right: 0,
+                    height: '100vh',
+                    width: 'min(92vw, 22rem)',
+                    zIndex: 3001,
+                    overflow: 'hidden',
+                    borderTopLeftRadius: 24,
+                    borderBottomLeftRadius: 24,
+                  }}
+                  role="dialog"
+                  aria-modal="true"
+                  aria-label="Danh sách câu hỏi"
+                >
+                  <div className="p-6" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                    <div className="flex items-center justify-between mb-4" style={{ flexShrink: 0 }}>
+                      <h4
+                        className="font-bold text-gray-800"
+                        style={{ fontSize: 'clamp(1.05rem, 2vw, 1.35rem)' }}
+                      >
+                        Danh sách câu hỏi
+                      </h4>
+                      <motion.button
+                        onClick={() => setIsMenuOpen(false)}
+                        className="bg-gray-100 rounded-full"
+                        whileHover={{ scale: 1.08, rotate: 90 }}
+                        whileTap={{ scale: 0.92 }}
+                        style={{
+                          width: 40,
+                          height: 40,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: 20,
+                          color: '#4B5563',
+                        }}
+                        aria-label="Đóng menu"
+                      >
+                        ✕
+                      </motion.button>
+                    </div>
+
+                    <div style={{ overflowY: 'auto', flex: 1, paddingRight: 6 }}>
+                      <div
+                        className="grid gap-3"
+                        style={{ gridTemplateColumns: 'repeat(4, minmax(0, 1fr))' }}
+                      >
+                        {questions.map((_, index) => (
+                          <motion.button
+                            key={index}
+                            onClick={() => {
+                              setCurrentQuestion(index);
+                              setIsMenuOpen(false);
+                            }}
+                            className={`rounded-xl font-semibold ${
+                              currentQuestion === index
+                                ? 'bg-purple-600 text-white'
+                                : answers[index] !== undefined
+                                  ? 'bg-green-100 text-green-700'
+                                  : 'bg-gray-100 text-gray-700'
+                            }`}
+                            whileHover={{ scale: 1.06 }}
+                            whileTap={{ scale: 0.94 }}
+                            style={{
+                              aspectRatio: '1 / 1',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              border: answers[index] !== undefined && currentQuestion !== index
+                                ? '2px solid rgba(4, 120, 87, 0.35)'
+                                : 'none',
+                              fontSize: 'clamp(0.95rem, 1.4vw, 1.1rem)',
+                            }}
+                          >
+                            {index + 1}
+                          </motion.button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              </>
+            )}
+          </AnimatePresence>,
+          document.body
+        )}
     </div>
   );
 }

@@ -154,7 +154,7 @@ export default function ResultPage({ score, onRestart }) {
                 ✅ Đã lưu thành công!
               </div>
             ) : (
-              <div className="justify-center flex flex-col sm:flex-row gap-3">
+              <div className="flex flex-col sm:flex-row gap-3">
                 <input
                   type="text"
                   placeholder="Nhập tên của bạn..."

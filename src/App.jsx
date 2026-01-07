@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
+import './App.css';
 import Header from './components/Header';
 import HomePage from './components/HomePage';
 import AboutPage from './components/AboutPage';

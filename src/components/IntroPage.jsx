@@ -2,10 +2,10 @@ import { motion } from 'framer-motion';
 
 export default function IntroPage({ onStart }) {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900 flex items-center justify-center relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-blue-900 via-pink-900 to-indigo-900 flex items-center justify-center relative overflow-hidden">
       {/* Animated background circles */}
       <motion.div
-        className="absolute w-96 h-96 bg-purple-500 rounded-full opacity-20 blur-3xl"
+        className="absolute w-96 h-96 bg-pink-500 rounded-full opacity-20 blur-3xl"
         animate={{
           x: [0, 100, 0],
           y: [0, 50, 0],
