@@ -3,10 +3,19 @@ import { questions } from '../data/questions';
 import Confetti from 'react-confetti';
 import { useState, useEffect } from 'react';
 
+// === THAY LINK WEB APP CỦA BẠN VÀO DƯỚI ĐÂY ===
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwDgdYVaFhIalt1Q2C1Uai_GrNdAx6bdJggTNoB1VSCT2ZP-uGwH852n8i1kI1fPgJ7/exec"; 
+
 export default function ResultPage({ score, onRestart }) {
-  const [showConfetti, setShowConfetti] = useState(false); 
+  const [showConfetti, setShowConfetti] = useState(false);
+  
+  // State cho việc lưu tên vào Sheet
+  const [userName, setUserName] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [saveStatus, setSaveStatus] = useState(null); // null | 'success' | 'error'
+
   const totalQuestions = questions.length;
-  const maxScore = totalQuestions * 5; // Tổng điểm tối đa: 40 câu x 5 điểm
+  const maxScore = totalQuestions * 5; 
   const percentage = Math.round((score / maxScore) * 100);
 
   let evaluation = "";
@@ -15,7 +24,7 @@ export default function ResultPage({ score, onRestart }) {
   let icon = "";
   let color = "";
 
-  // Phân loại theo thang điểm EQ (theo 4 nhóm)
+  // Phân loại EQ
   if (score >= 161) {
     evaluation = "Chỉ số trí tuệ cảm xúc rất tốt";
     description = "Bạn có khả năng nhận thức và làm chủ cảm xúc xuất sắc, luôn giữ được sự bình tĩnh và tích cực ngay cả trong những tình huống áp lực cao.";
@@ -62,12 +71,54 @@ export default function ResultPage({ score, onRestart }) {
   }
 
   useEffect(() => {
-    const timer = setTimeout(() => setShowConfetti(false), 5000);
-    return () => clearTimeout(timer);
-  }, []);
+    // Chỉ chạy confetti nếu điểm cao
+    if (score >= 161) {
+        setShowConfetti(true);
+        const timer = setTimeout(() => setShowConfetti(false), 5000);
+        return () => clearTimeout(timer);
+    }
+  }, [score]);
+
+  // Hàm xử lý gửi dữ liệu lên Google Sheet
+  const handleSaveToSheet = async () => {
+    if (!userName.trim()) {
+      alert("Vui lòng nhập tên của bạn!");
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      // Dữ liệu gửi đi: Tên, Điểm, Loại
+      const dataToSend = {
+        ten: userName,
+        diem: score,
+        loai: evaluation 
+      };
+
+      // Sử dụng mode 'no-cors' để tránh lỗi CORS từ Google Script (tuy nhiên sẽ không đọc được response chi tiết)
+      await fetch(GOOGLE_SCRIPT_URL, {
+        method: "POST",
+        mode: "no-cors", 
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(dataToSend),
+      });
+
+      // Giả lập thành công vì no-cors không trả về status 200 chuẩn
+      setSaveStatus('success');
+      
+    } catch (error) {
+      console.error("Lỗi khi lưu:", error);
+      setSaveStatus('error');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-blue-900 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-blue-900 flex items-center justify-center px-4 py-10">
       {showConfetti && <Confetti recycle={false} numberOfPieces={500} />}
 
       <motion.div
@@ -76,53 +127,63 @@ export default function ResultPage({ score, onRestart }) {
         animate={{ scale: 1, opacity: 1 }}
         transition={{ duration: 0.5 }}
       >
-        <div className="bg-white rounded-3xl shadow-2xl p-12 text-center">
+        <div className="bg-white rounded-3xl shadow-2xl p-8 md:p-12 text-center">
+          
           {/* Icon */}
-          <motion.div
-            className="text-8xl mb-6"
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-          >
-            {icon}
-          </motion.div>
+          <motion.div className="text-8xl mb-6">{icon}</motion.div>
 
-          {/* Title */}
-          <motion.h2
-            className="text-4xl font-bold text-gray-800 mb-4"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-          >
-            Kết quả đánh giá EQ
-          </motion.h2>
+          <h2 className="text-4xl font-bold text-gray-800 mb-4">Kết quả đánh giá EQ</h2>
 
           {/* Score */}
-          <motion.div
-            className={`text-7xl font-black bg-gradient-to-r ${color} bg-clip-text text-transparent mb-4`}
-            initial={{ opacity: 0, scale: 0.5 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.4, type: "spring" }}
-          >
+          <div className={`text-7xl font-black bg-gradient-to-r ${color} bg-clip-text text-transparent mb-2`}>
             {score}/{maxScore}
-          </motion.div>
+          </div>
+          <p className="text-2xl text-gray-600 mb-6">Điểm EQ: {percentage}%</p>
 
-          <motion.p
-            className="text-2xl text-gray-600 mb-6"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
+          {/* === FORM NHẬP TÊN ĐỂ LƯU === */}
+          <motion.div 
+            className="mb-8 p-6 bg-gray-50 rounded-xl border border-gray-200"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
           >
-            Điểm EQ: {percentage}%
-          </motion.p>
+            <h3 className="text-lg font-semibold text-gray-700 mb-4">Lưu kết quả của bạn</h3>
+            
+            {saveStatus === 'success' ? (
+              <div className="text-green-600 font-bold text-xl flex items-center justify-center gap-2">
+                ✅ Đã lưu thành công!
+              </div>
+            ) : (
+              <div className="justify-center flex flex-col sm:flex-row gap-3">
+                <input
+                  type="text"
+                  placeholder="Nhập tên của bạn..."
+                  value={userName}
+                  onChange={(e) => setUserName(e.target.value)}
+                  className="w-full px-4 py-3 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800"
+                  disabled={isSubmitting}
+                />
+                <button
+                  onClick={handleSaveToSheet}
+                  disabled={isSubmitting}
+                  className={`px-6 py-3 rounded-full font-bold text-white transition-all ${
+                    isSubmitting 
+                      ? 'bg-gray-400 cursor-not-allowed' 
+                      : 'bg-blue-600 hover:bg-blue-700 shadow-md hover:shadow-lg'
+                  }`}
+                >
+                  {isSubmitting ? 'Đang lưu...' : 'Lưu'}
+                </button>
+              </div>
+            )}
+            {saveStatus === 'error' && (
+              <p className="text-red-500 mt-2 text-sm">Có lỗi xảy ra, vui lòng thử lại.</p>
+            )}
+          </motion.div>
+          {/* === KẾT THÚC FORM === */}
 
-          {/* Evaluation */}
-          <motion.div
-            className="mb-8"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6 }}
-          >
+          {/* Evaluation Content */}
+          <div className="mb-8">
             <p className={`text-3xl font-bold mb-4 bg-gradient-to-r ${color} bg-clip-text text-transparent`}>
               {evaluation}
             </p>
@@ -130,46 +191,29 @@ export default function ResultPage({ score, onRestart }) {
               {description}
             </p>
             
-            {/* Suggestions */}
             {suggestions.length > 0 && (
-              <div className="text-left px-6 mt-6">
+              <div className="text-left px-4 md:px-6 mt-6 bg-gray-50 p-6 rounded-xl">
                 <h3 className="text-xl font-bold text-gray-800 mb-3">Nhận xét, góp ý:</h3>
-                <ul className="space-y-2">
+                <ul className="space-y-3">
                   {suggestions.map((suggestion, index) => (
                     <li key={index} className="flex items-start text-gray-700">
-                      <span className="mr-3 text-blue-600 font-bold">•</span>
+                      <span className="mr-3 text-blue-600 font-bold text-xl">•</span>
                       <span className="text-base leading-relaxed">{suggestion}</span>
                     </li>
                   ))}
                 </ul>
               </div>
             )}
-          </motion.div>
-
-          {/* Progress Bar */}
-          <div className="mb-8">
-            <div className="bg-gray-200 rounded-full h-6 overflow-hidden">
-              <motion.div
-                className={`h-full bg-gradient-to-r ${color}`}
-                initial={{ width: 0 }}
-                animate={{ width: `${percentage}%` }}
-                transition={{ delay: 0.7, duration: 1 }}
-              />
-            </div>
           </div>
-          
 
-          {/* Button */}
+          {/* Button Restart */}
           <motion.button
             onClick={onRestart}
-            className="px-12 py-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-full text-lg font-bold shadow-lg"
-            whileHover={{ scale: 1.05, boxShadow: "0 20px 40px rgba(0,0,0,0.2)" }}
+            className="px-12 py-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-full text-lg font-bold shadow-lg mt-4"
+            whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.8 }}
           >
-            🔄 Làm lại
+            🔄 Làm lại bài test
           </motion.button>
         </div>
       </motion.div>
