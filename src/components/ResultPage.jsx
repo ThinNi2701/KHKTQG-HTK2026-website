@@ -5,29 +5,60 @@ import { useState, useEffect } from 'react';
 
 export default function ResultPage({ score, onRestart }) {
   const [showConfetti, setShowConfetti] = useState(false);
-  const percentage = Math.round((score / questions.length) * 100);
+  const totalQuestions = questions.length;
+  const maxScore = totalQuestions * 5; // Tổng điểm tối đa: 40 câu x 5 điểm
+  const percentage = Math.round((score / maxScore) * 100);
 
   let evaluation = "";
+  let description = "";
+  let suggestions = [];
   let icon = "";
   let color = "";
 
-  if (score >= 36) {
-    evaluation = "Xuất sắc! Bạn nắm vững kiến thức!";
+  // Phân loại theo thang điểm EQ (theo 4 nhóm)
+  if (score >= 161) {
+    evaluation = "Chỉ số trí tuệ cảm xúc rất tốt";
+    description = "Bạn có khả năng nhận thức và làm chủ cảm xúc xuất sắc, luôn giữ được sự bình tĩnh và tích cực ngay cả trong những tình huống áp lực cao.";
+    suggestions = [
+      "Thể hiện mức độ đồng cảm sâu sắc, thấu hiểu cảm xúc và góc nhìn của người khác, từ đó xây dựng mối quan hệ hài hòa và tin cậy.",
+      "Biết điều chỉnh cảm xúc linh hoạt và phù hợp, góp phần tạo môi trường làm việc tích cực và hiệu quả.",
+      "Có kỹ năng giao tiếp cảm xúc rất tốt, xử lý xung đột khéo léo và mang tính xây dựng.",
+      "Luôn tiếp nhận phản hồi một cách cởi mở, biến thách thức thành cơ hội phát triển bản thân và tập thể."
+    ];
     icon = "🌟";
     color = "from-yellow-400 to-orange-500";
     setShowConfetti(true);
-  } else if (score >= 30) {
-    evaluation = "Tốt! Bạn đã làm rất tốt!";
-    icon = "✅";
+  } else if (score >= 121) {
+    evaluation = "Chỉ số trí tuệ cảm xúc tốt";
+    description = "Bạn có khả năng nhận diện và kiểm soát cảm xúc khá tốt, biết giữ bình tĩnh trong những tình huống áp lực.";
+    suggestions = [
+      "Có sự thấu hiểu và đồng cảm với người khác, lắng nghe ý kiến và cảm xúc của tập thể trước khi đưa ra phán hồi.",
+      "Biết điều chỉnh cảm xúc phù hợp với hoàn cảnh, tránh để cảm xúc cá nhân ảnh hưởng tiêu cực đến công việc và các mối quan hệ.",
+      "Có kỹ năng giao tiếp cảm xúc tích cực, thể hiện sự tôn trọng và hợp tác khi làm việc nhóm.",
+      "Sẵn sàng tiếp nhận góp ý và biết chuyển phản hồi thành động lực cải thiện bản thân."
+    ];
+    icon = "✨";
     color = "from-green-400 to-emerald-500";
-  } else if (score >= 20) {
-    evaluation = "Trung bình. Cần ôn tập thêm!";
-    icon = "⚠️";
+  } else if (score >= 81) {
+    evaluation = "Chỉ số trí tuệ cảm xúc trung bình";
+    description = "Bạn có khả năng nhận biết cảm xúc của bản thân ở mức cơ bản, tuy nhiên đôi lúc vẫn để cảm xúc ảnh hưởng đến phản ứng hoặc quyết định.";
+    suggestions = [
+      "Có ý thức lắng nghe và tôn trọng người khác, nhưng mức độ đồng cảm và điều chỉnh cảm xúc chưa thật sự ổn định trong các tình huống áp lực.",
+      "Giao tiếp nhìn chung phù hợp, song cần cải thiện khả năng kiểm soát cảm xúc để tránh hiểu lầm hoặc căng thẳng không cần thiết.",
+      "Sẵn sàng tiếp nhận góp ý, nhưng cần chủ động hơn trong việc rèn luyện kỹ năng quản lý cảm xúc và xử lý xung đột."
+    ];
+    icon = "💡";
     color = "from-blue-400 to-cyan-500";
   } else {
-    evaluation = "Cần cải thiện. Hãy học lại nhé!";
-    icon = "❌";
-    color = "from-red-400 to-pink-500";
+    evaluation = "Chỉ số trí tuệ cảm xúc thấp";
+    description = "Bạn chưa kiểm soát tốt cảm xúc cá nhân, dễ bị chi phối bởi tâm trạng trong giao tiếp và công việc.";
+    suggestions = [
+      "Khả năng nhận diện cảm xúc của bản thân và người khác còn hạn chế, dẫn đến phản ứng đôi lúc chưa phù hợp với hoàn cảnh.",
+      "Trong các tình huống áp lực hoặc mâu thuẫn, chưa thể hiện được sự bình tĩnh và linh hoạt trong ứng xử.",
+      "Cần rèn luyện thêm kỹ năng quản lý cảm xúc, lắng nghe và đồng cảm, nhằm cải thiện hiệu quả giao tiếp và xây dựng mối quan hệ tích cực hơn."
+    ];
+    icon = "🌱";
+    color = "from-purple-400 to-pink-500";
   }
 
   useEffect(() => {
@@ -63,7 +94,7 @@ export default function ResultPage({ score, onRestart }) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
           >
-            Kết quả của bạn
+            Kết quả đánh giá EQ
           </motion.h2>
 
           {/* Score */}
@@ -73,7 +104,7 @@ export default function ResultPage({ score, onRestart }) {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.4, type: "spring" }}
           >
-            {score}/{questions.length}
+            {score}/{maxScore}
           </motion.div>
 
           <motion.p
@@ -82,18 +113,38 @@ export default function ResultPage({ score, onRestart }) {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}
           >
-            {percentage}% đúng
+            Điểm EQ: {percentage}%
           </motion.p>
 
           {/* Evaluation */}
-          <motion.p
-            className="text-3xl font-bold text-gray-800 mb-8"
+          <motion.div
+            className="mb-8"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.6 }}
           >
-            {evaluation}
-          </motion.p>
+            <p className={`text-3xl font-bold mb-4 bg-gradient-to-r ${color} bg-clip-text text-transparent`}>
+              {evaluation}
+            </p>
+            <p className="text-lg text-gray-700 leading-relaxed px-4 mb-6">
+              {description}
+            </p>
+            
+            {/* Suggestions */}
+            {suggestions.length > 0 && (
+              <div className="text-left px-6 mt-6">
+                <h3 className="text-xl font-bold text-gray-800 mb-3">Nhận xét, góp ý:</h3>
+                <ul className="space-y-2">
+                  {suggestions.map((suggestion, index) => (
+                    <li key={index} className="flex items-start text-gray-700">
+                      <span className="mr-3 text-blue-600 font-bold">•</span>
+                      <span className="text-base leading-relaxed">{suggestion}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </motion.div>
 
           {/* Progress Bar */}
           <div className="mb-8">
@@ -108,18 +159,14 @@ export default function ResultPage({ score, onRestart }) {
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-3 gap-4 mb-8">
-            <div className="bg-green-50 rounded-xl p-4">
-              <div className="text-3xl font-bold text-green-600">{score}</div>
-              <div className="text-sm text-gray-600">Đúng</div>
-            </div>
-            <div className="bg-red-50 rounded-xl p-4">
-              <div className="text-3xl font-bold text-red-600">{questions.length - score}</div>
-              <div className="text-sm text-gray-600">Sai</div>
+          <div className="grid grid-cols-2 gap-4 mb-8">
+            <div className={`bg-gradient-to-br ${color} bg-opacity-10 rounded-xl p-4`}>
+              <div className="text-4xl font-bold text-gray-800">{score}</div>
+              <div className="text-sm text-gray-600">Tổng điểm đạt được</div>
             </div>
             <div className="bg-blue-50 rounded-xl p-4">
-              <div className="text-3xl font-bold text-blue-600">{questions.length}</div>
-              <div className="text-sm text-gray-600">Tổng</div>
+              <div className="text-4xl font-bold text-blue-600">{maxScore}</div>
+              <div className="text-sm text-gray-600">Tổng điểm tối đa</div>
             </div>
           </div>
 

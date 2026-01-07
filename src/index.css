@@ -18,7 +18,12 @@ body {
   -webkit-backdrop-filter: blur(20px) saturate(180%);
   border: 1px solid rgba(255, 255, 255, 0.3);
 }
-
+.glass-header {
+  background: rgba(200, 200, 200, 0.7);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
 .glass-dark {
   background: rgba(0, 0, 0, 0.3);
   backdrop-filter: blur(20px) saturate(180%);
@@ -28,6 +33,37 @@ body {
 
 .glass-light {
   background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* Responsive padding for content */
+.content-padding {
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+@media (min-width: 768px) {
+  .content-padding {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .content-padding {
+    padding-left: 4rem;
+    padding-right: 4rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  .content-padding {
+    padding-left: 10vw;
+    padding-right: 10vw;
+  }
+}
   backdrop-filter: blur(15px) saturate(180%);
   -webkit-backdrop-filter: blur(15px) saturate(180%);
   border: 1px solid rgba(255, 255, 255, 0.5);
