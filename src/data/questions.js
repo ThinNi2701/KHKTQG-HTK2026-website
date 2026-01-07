@@ -1,5 +1,4 @@
-// Dữ liệu 40 câu hỏi trắc nghiệm
-const questions = [
+export const questions = [
   {
     question: "HTML là gì?",
     options: [
@@ -401,74 +400,3 @@ const questions = [
     correct: 1
   }
 ];
-
-// Hàm bắt đầu làm bài
-function startQuiz() {
-  document.getElementById("intro").classList.add("hidden");
-  document.getElementById("quiz").classList.remove("hidden");
-
-  const quizForm = document.getElementById("quizForm");
-  quizForm.innerHTML = "";
-
-  questions.forEach((q, index) => {
-    const div = document.createElement("div");
-    div.className = "question";
-
-    div.innerHTML = `
-      <p><strong>Câu ${index + 1}:</strong> ${q.question}</p>
-      ${q.options.map((opt, i) => `
-        <label>
-          <input type="radio" name="q${index}" value="${i}">
-          ${opt}
-        </label>
-      `).join("")}
-    `;
-
-    quizForm.appendChild(div);
-  });
-
-  // Scroll to top
-  window.scrollTo(0, 0);
-}
-
-// Hàm nộp bài và tính điểm
-function submitQuiz() {
-  let score = 0;
-  let answered = 0;
-
-  questions.forEach((q, index) => {
-    const selected = document.querySelector(`input[name="q${index}"]:checked`);
-    if (selected) {
-      answered++;
-      if (parseInt(selected.value) === q.correct) {
-        score++;
-      }
-    }
-  });
-
-  // Kiểm tra xem đã trả lời hết chưa
-  if (answered < questions.length) {
-    const unanswered = questions.length - answered;
-    if (!confirm(`Bạn còn ${unanswered} câu chưa trả lời. Bạn có chắc muốn nộp bài?`)) {
-      return;
-    }
-  }
-
-  // Hiển thị kết quả
-  document.getElementById("quiz").classList.add("hidden");
-  document.getElementById("result").classList.remove("hidden");
-
-  document.getElementById("score").innerText =
-    `Bạn trả lời đúng ${score} / ${questions.length} câu (${Math.round(score/questions.length*100)}%)`;
-
-  let evaluation = "";
-  if (score >= 36) evaluation = "🌟 Xuất sắc! Bạn nắm vững kiến thức!";
-  else if (score >= 30) evaluation = "✅ Tốt! Bạn đã làm rất tốt!";
-  else if (score >= 20) evaluation = "⚠️ Trung bình. Cần ôn tập thêm!";
-  else evaluation = "❌ Cần cải thiện. Hãy học lại nhé!";
-
-  document.getElementById("evaluation").innerText = evaluation;
-
-  // Scroll to top
-  window.scrollTo(0, 0);
-}
