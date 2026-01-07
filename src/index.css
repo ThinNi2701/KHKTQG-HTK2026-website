@@ -19,7 +19,7 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.3);
 }
 .glass-header {
-  background: rgba(200, 200, 200, 0.7);
+  background: rgba(220, 220, 220, 0.7);
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
   border: 1px solid rgba(255, 255, 255, 0.3);
