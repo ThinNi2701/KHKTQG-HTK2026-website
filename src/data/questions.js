@@ -214,5 +214,5 @@ export const scaleOptions = [
   { label: "Thường đúng với tôi", value: 4 },
   { label: "Có vẻ đúng với tôi", value: 3 },
   { label: "Không đúng lắm", value: 2 },
-  { label: "Hoàn toàn không đúng với tôi", value: 1 }
+  { label: "Hoàn toàn không đúng", value: 1 }
 ];
