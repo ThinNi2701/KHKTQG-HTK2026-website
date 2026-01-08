@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { emotionControlQuestions } from '../data/emotionControlTestQuestions';
 import { scaleOptions } from '../data/questions';
 
-const PASSWORD = 'HTK-KHKT-2026';
+const PASSWORD = 'htk2026@';
 const STORAGE_KEY = 'emotion_control_test_progress_v1';
 const ACCESS_SESSION_KEY = 'emotion_control_test_access_session_v1';
 
