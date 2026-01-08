@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import './App.css';
 import Header from './components/Header';
@@ -25,6 +25,20 @@ function App() {
   const currentPosRef = useRef({ x: 0, y: 0 });
   const hasCurrentRef = useRef(false);
   const lastMoveTsRef = useRef(0);
+
+  const isTakingTest = page === 'quiz' || page === 'emotionTest';
+
+  useEffect(() => {
+    if (!isTakingTest) return;
+    const el = appShellRef.current;
+    if (!el) return;
+    el.style.setProperty('--spot-opacity', '0');
+    hasCurrentRef.current = false;
+    if (rafRef.current) {
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = 0;
+    }
+  }, [isTakingTest]);
 
   const handleNavigate = (targetPage) => {
     setPage(targetPage);
@@ -59,6 +73,7 @@ function App() {
       ref={appShellRef}
       className="app-shell"
       onMouseMove={(e) => {
+        if (isTakingTest) return;
         const el = appShellRef.current;
         if (!el) return;
 
@@ -109,6 +124,7 @@ function App() {
         rafRef.current = requestAnimationFrame(tick);
       }}
       onMouseLeave={() => {
+        if (isTakingTest) return;
         const el = appShellRef.current;
         if (!el) return;
         el.style.setProperty('--spot-opacity', '0');

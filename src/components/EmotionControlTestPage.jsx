@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { AnimatePresence, motion } from 'framer-motion';
 import { emotionControlQuestions } from '../data/emotionControlTestQuestions';
 import { scaleOptions } from '../data/questions';
 
@@ -169,13 +168,8 @@ export default function EmotionControlTestPage({ onSubmit }) {
 
   if (!hasAccess) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-100 flex items-center justify-center px-4">
-        <motion.div
-          className="max-w-md w-full bg-white/80 backdrop-blur-lg rounded-3xl shadow-2xl p-8 border border-white/60"
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
+      <div className="min-h-screen flex items-center justify-center px-4">
+        <div className="max-w-md w-full bg-white/80 backdrop-blur-lg rounded-3xl shadow-2xl p-8 border border-white/60">
           <h1 className="text-2xl font-bold text-gray-800 mb-3 text-center">
             Bài kiểm tra khả năng kiểm soát cảm xúc
           </h1>
@@ -193,25 +187,21 @@ export default function EmotionControlTestPage({ onSubmit }) {
             {passwordError && (
               <p className="text-sm text-red-500 text-center">{passwordError}</p>
             )}
-            <motion.button
+            <button
               type="submit"
               className="w-full py-3 rounded-2xl bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold shadow-lg"
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
             >
               Gửi
-            </motion.button>
+            </button>
           </form>
-        </motion.div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 py-6 px-4">
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
+    <div className="min-h-screen py-6 px-4">
+      <div
         className="glass-light rounded-2xl shadow-2xl p-4"
         style={{
           position: 'fixed',
@@ -238,16 +228,11 @@ export default function EmotionControlTestPage({ onSubmit }) {
             <p className="text-xs text-red-500 mt-1 font-medium">⚠️ Sắp hết giờ!</p>
           )}
         </div>
-      </motion.div>
+      </div>
 
-      <motion.button
+      <button
         onClick={() => setIsMenuOpen(!isMenuOpen)}
         className="rounded-full shadow-2xl"
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.9 }}
-        initial={{ opacity: 0, scale: 0 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ type: 'spring', stiffness: 260, damping: 20 }}
         style={{
           position: 'fixed',
           bottom: 96,
@@ -281,15 +266,13 @@ export default function EmotionControlTestPage({ onSubmit }) {
           <line x1="3" y1="12" x2="21" y2="12" />
           <line x1="3" y1="18" x2="21" y2="18" />
         </svg>
-      </motion.button>
+      </button>
 
       <div className="max-w-7xl mx-auto mb-6">
         <div className="glass rounded-full h-4 overflow-hidden shadow-inner">
-          <motion.div
+          <div
             className="h-full bg-gradient-to-r from-blue-500 to-purple-600"
-            initial={{ width: 0 }}
-            animate={{ width: `${progress}%` }}
-            transition={{ duration: 0.5 }}
+            style={{ width: `${progress}%` }}
           />
         </div>
         <p className="text-center mt-3 text-gray-600 font-semibold text-lg">
@@ -308,15 +291,7 @@ export default function EmotionControlTestPage({ onSubmit }) {
         }}
       >
         <div style={{ display: 'flex', justifyContent: 'center' }}>
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={currentQuestion}
-              initial={{ opacity: 0, x: 100 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -100 }}
-              transition={{ duration: 0.3 }}
-              style={{ width: '100%' }}
-            >
+          <div style={{ width: '100%' }}>
               <div className="glass-light rounded-2xl shadow-xl p-4 md:p-8 lg:p-12">
                 <h3
                   className="font-bold text-gray-800 mb-4 md:mb-6 lg:mb-8"
@@ -332,7 +307,7 @@ export default function EmotionControlTestPage({ onSubmit }) {
                   {scaleOptions.map((option, index) => {
                     const isSelected = answers[currentQuestion] === option.value;
                     return (
-                      <motion.button
+                      <button
                         key={index}
                         onClick={() => handleAnswer(currentQuestion, option.value)}
                         className={`w-full text-left rounded-xl transition-all flex items-center ${
@@ -345,8 +320,6 @@ export default function EmotionControlTestPage({ onSubmit }) {
                           outline: 'none',
                           boxShadow: isSelected ? undefined : '0 10px 24px rgba(15, 23, 42, 0.06)',
                         }}
-                        whileHover={{ scale: 1.01 }}
-                        whileTap={{ scale: 0.99 }}
                       >
                         <div className="flex items-center justify-between w-full">
                           <div
@@ -395,18 +368,16 @@ export default function EmotionControlTestPage({ onSubmit }) {
                             {option.value} điểm
                           </span>
                         </div>
-                      </motion.button>
+                      </button>
                     );
                   })}
                 </div>
 
                 <div className="mt-8 flex justify-between gap-2 md:gap-4">
-                  <motion.button
+                  <button
                     onClick={() => setCurrentQuestion(Math.max(0, currentQuestion - 1))}
                     disabled={currentQuestion === 0}
                     className="bg-gray-200 text-gray-700 rounded-xl md:rounded-2xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
-                    whileHover={{ scale: currentQuestion > 0 ? 1.05 : 1 }}
-                    whileTap={{ scale: 0.95 }}
                     style={{
                       padding: 'clamp(0.7rem, 1.5vw, 1.05rem) clamp(1.1rem, 2.4vw, 1.85rem)',
                       fontSize: 'clamp(0.95rem, 1.5vw, 1.1rem)',
@@ -415,16 +386,12 @@ export default function EmotionControlTestPage({ onSubmit }) {
                     }}
                   >
                     ← Câu trước
-                  </motion.button>
+                  </button>
 
-                  <motion.button
+                  <button
                     onClick={() => setCurrentQuestion(currentQuestion + 1)}
                     disabled={currentQuestion >= emotionControlQuestions.length - 1}
                     className="bg-gradient-to-r from-blue-500 to-pink-500 text-white rounded-xl md:rounded-2xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
-                    whileHover={{
-                      scale: currentQuestion < emotionControlQuestions.length - 1 ? 1.05 : 1,
-                    }}
-                    whileTap={{ scale: 0.95 }}
                     style={{
                       padding: 'clamp(0.7rem, 1.5vw, 1.05rem) clamp(1.1rem, 2.4vw, 1.85rem)',
                       fontSize: 'clamp(0.95rem, 1.5vw, 1.1rem)',
@@ -433,19 +400,16 @@ export default function EmotionControlTestPage({ onSubmit }) {
                     }}
                   >
                     Câu tiếp →
-                  </motion.button>
+                  </button>
                 </div>
               </div>
-            </motion.div>
-          </AnimatePresence>
+          </div>
         </div>
 
         <div className="mt-8 flex justify-center">
-          <motion.button
+          <button
             onClick={() => handleSubmit(false)}
             className="w-full max-w-md px-6 md:px-8 py-3 md:py-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl md:rounded-2xl font-bold text-base md:text-lg shadow-lg"
-            whileHover={{ scale: 1.03, boxShadow: '0 8px 20px rgba(16, 185, 129, 0.3)' }}
-            whileTap={{ scale: 0.97 }}
             style={{
               fontSize: 'clamp(0.98rem, 1.8vw, 1.12rem)',
               paddingTop: 'clamp(0.85rem, 1.8vw, 1.15rem)',
@@ -455,126 +419,107 @@ export default function EmotionControlTestPage({ onSubmit }) {
             }}
           >
             ✓ Nộp bài
-          </motion.button>
+          </button>
         </div>
 
       </div>
 
       {typeof document !== 'undefined' &&
         createPortal(
-          <AnimatePresence>
-            {isMenuOpen && (
-              <>
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  onClick={() => setIsMenuOpen(false)}
-                  style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    background: 'rgba(0, 0, 0, 0.55)',
-                    backdropFilter: 'blur(4px)',
-                    WebkitBackdropFilter: 'blur(4px)',
-                    zIndex: 3000,
-                  }}
-                />
+          isMenuOpen ? (
+            <>
+              <div
+                onClick={() => setIsMenuOpen(false)}
+                style={{
+                  position: 'fixed',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  background: 'rgba(0, 0, 0, 0.55)',
+                  backdropFilter: 'blur(4px)',
+                  WebkitBackdropFilter: 'blur(4px)',
+                  zIndex: 3000,
+                }}
+              />
 
-                <motion.div
-                  initial={{ x: '100%' }}
-                  animate={{ x: 0 }}
-                  exit={{ x: '100%' }}
-                  transition={{ type: 'spring', damping: 26, stiffness: 320 }}
-                  className="glass-light shadow-2xl"
-                  style={{
-                    position: 'fixed',
-                    top: 0,
-                    right: 0,
-                    height: '100vh',
-                    width: 'min(92vw, 22rem)',
-                    zIndex: 3001,
-                    overflow: 'hidden',
-                    borderTopLeftRadius: 24,
-                    borderBottomLeftRadius: 24,
-                  }}
-                  role="dialog"
-                  aria-modal="true"
-                  aria-label="Danh sách câu hỏi"
-                >
-                  <div className="p-6" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-                    <div className="flex items-center justify-between mb-4" style={{ flexShrink: 0 }}>
-                      <h4
-                        className="font-bold text-gray-800"
-                        style={{ fontSize: 'clamp(1.05rem, 2vw, 1.35rem)' }}
-                      >
-                        Danh sách câu hỏi
-                      </h4>
-                      <motion.button
-                        onClick={() => setIsMenuOpen(false)}
-                        className="bg-gray-100 rounded-full"
-                        whileHover={{ scale: 1.08, rotate: 90 }}
-                        whileTap={{ scale: 0.92 }}
-                        style={{
-                          width: 40,
-                          height: 40,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontSize: 20,
-                          color: '#4B5563',
-                        }}
-                        aria-label="Đóng menu"
-                      >
-                        ✕
-                      </motion.button>
-                    </div>
+              <div
+                className="glass-light shadow-2xl"
+                style={{
+                  position: 'fixed',
+                  top: 0,
+                  right: 0,
+                  height: '100vh',
+                  width: 'min(92vw, 22rem)',
+                  zIndex: 3001,
+                  overflow: 'hidden',
+                  borderTopLeftRadius: 24,
+                  borderBottomLeftRadius: 24,
+                }}
+                role="dialog"
+                aria-modal="true"
+                aria-label="Danh sách câu hỏi"
+              >
+                <div className="p-6" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                  <div className="flex items-center justify-between mb-4" style={{ flexShrink: 0 }}>
+                    <h4 className="font-bold text-gray-800" style={{ fontSize: 'clamp(1.05rem, 2vw, 1.35rem)' }}>
+                      Danh sách câu hỏi
+                    </h4>
+                    <button
+                      onClick={() => setIsMenuOpen(false)}
+                      className="bg-gray-100 rounded-full"
+                      style={{
+                        width: 40,
+                        height: 40,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: 20,
+                        color: '#4B5563',
+                      }}
+                      aria-label="Đóng menu"
+                    >
+                      ✕
+                    </button>
+                  </div>
 
-                    <div style={{ overflowY: 'auto', flex: 1, paddingRight: 6 }}>
-                      <div
-                        className="grid gap-3"
-                        style={{ gridTemplateColumns: 'repeat(4, minmax(0, 1fr))' }}
-                      >
-                        {emotionControlQuestions.map((_, index) => (
-                          <motion.button
-                            key={index}
-                            onClick={() => {
-                              setCurrentQuestion(index);
-                              setIsMenuOpen(false);
-                            }}
-                            className={`rounded-xl font-semibold ${
-                              currentQuestion === index
-                                ? 'bg-purple-600 text-white'
-                                : answers[index] !== undefined
-                                  ? 'bg-green-100 text-green-700'
-                                  : 'bg-gray-100 text-gray-700'
-                            }`}
-                            whileHover={{ scale: 1.06 }}
-                            whileTap={{ scale: 0.94 }}
-                            style={{
-                              aspectRatio: '1 / 1',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              border:
-                                answers[index] !== undefined && currentQuestion !== index
-                                  ? '2px solid rgba(4, 120, 87, 0.35)'
-                                  : 'none',
-                              fontSize: 'clamp(0.95rem, 1.4vw, 1.1rem)',
-                            }}
-                          >
-                            {index + 1}
-                          </motion.button>
-                        ))}
-                      </div>
+                  <div style={{ overflowY: 'auto', flex: 1, paddingRight: 6 }}>
+                    <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(4, minmax(0, 1fr))' }}>
+                      {emotionControlQuestions.map((_, index) => (
+                        <button
+                          key={index}
+                          onClick={() => {
+                            setCurrentQuestion(index);
+                            setIsMenuOpen(false);
+                          }}
+                          className={`rounded-xl font-semibold ${
+                            currentQuestion === index
+                              ? 'bg-purple-600 text-white'
+                              : answers[index] !== undefined
+                                ? 'bg-green-100 text-green-700'
+                                : 'bg-gray-100 text-gray-700'
+                          }`}
+                          style={{
+                            aspectRatio: '1 / 1',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            border:
+                              answers[index] !== undefined && currentQuestion !== index
+                                ? '2px solid rgba(4, 120, 87, 0.35)'
+                                : 'none',
+                            fontSize: 'clamp(0.95rem, 1.4vw, 1.1rem)',
+                          }}
+                        >
+                          {index + 1}
+                        </button>
+                      ))}
                     </div>
                   </div>
-                </motion.div>
-              </>
-            )}
-          </AnimatePresence>,
+                </div>
+              </div>
+            </>
+          ) : null,
           document.body
         )}
     </div>
