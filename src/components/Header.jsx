@@ -16,7 +16,8 @@ export default function Header({ currentPage, onNavigate }) {
     { id: 'family', label: 'Mâu thuẫn gia đình' },
     { id: 'violence', label: 'Bạo lực học đường' },
     { id: 'emotion', label: 'Điều chỉnh cảm xúc' },
-    { id: 'faq', label: 'Giải đáp thắc mắc' }
+    { id: 'faq', label: 'Giải đáp thắc mắc' },
+    { id: 'emotionTest', label: 'Bài kiểm tra kiểm soát cảm xúc' }
   ];
 
   const recompute = () => {
@@ -127,10 +128,10 @@ export default function Header({ currentPage, onNavigate }) {
               <motion.button
                 key={item.id}
                 onClick={() => handleNavigate(item.id)}
-                className={`rounded-2xl font-semibold transition-all ${
+                className={`nav-pill rounded-2xl font-semibold transition-all ${
                   currentPage === item.id
-                    ? 'bg-gradient-to-r from-blue-500 to-pink-500 text-white shadow-lg'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    ? 'nav-pill-active text-white shadow-lg'
+                    : 'bg-gray-100 text-gray-700'
                 }`}
                 style={{
                   flexShrink: 0,
@@ -142,7 +143,7 @@ export default function Header({ currentPage, onNavigate }) {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                {item.label}
+                <span className="nav-pill-label">{item.label}</span>
               </motion.button>
             ))}
           </nav>
@@ -227,15 +228,15 @@ export default function Header({ currentPage, onNavigate }) {
                   <motion.button
                     key={item.id}
                     onClick={() => handleNavigate(item.id)}
-                    className={`w-full px-6 py-4 rounded-xl font-semibold text-base transition-all text-left ${
+                    className={`nav-pill nav-pill-mobile w-full px-6 py-4 rounded-xl font-semibold text-base transition-all text-left ${
                       currentPage === item.id
-                        ? 'bg-gradient-to-r from-blue-500 to-pink-500 text-white shadow-lg'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        ? 'nav-pill-active text-white shadow-lg'
+                        : 'bg-gray-100 text-gray-700'
                     }`}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
-                    {item.label}
+                    <span className="nav-pill-label">{item.label}</span>
                   </motion.button>
                 ))}
               </div>

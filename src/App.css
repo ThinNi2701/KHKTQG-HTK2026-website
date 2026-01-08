@@ -5,9 +5,73 @@
   text-align: left;
 }
 
+/* Global background (applies to all pages) */
+.app-shell {
+  position: relative;
+  isolation: isolate;
+  min-height: 100vh;
+  --mx: 50vw;
+  --my: 40vh;
+  --spot-opacity: 0;
+  /* Large circular spotlight radius */
+  --spot-size: 720px;
+}
+
+.app-shell::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.65), rgba(255, 255, 255, 0.65)),
+    url("/image/background.png") center / cover no-repeat;
+  filter: blur(30px);
+  transform: scale(1.06);
+  z-index: -2;
+}
+
+.app-shell::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0.55)),
+    url("/image/background.png") center / cover no-repeat;
+  filter: blur(10px);
+  transform: scale(1.03);
+  opacity: var(--spot-opacity);
+  transition: opacity 180ms ease;
+  animation: spotlight-breathe 3.6s ease-in-out infinite;
+  -webkit-mask-image: radial-gradient(
+    circle var(--spot-size) at var(--mx) var(--my),
+    rgba(0, 0, 0, 1) 0%,
+    rgba(0, 0, 0, 0.65) 38%,
+    rgba(0, 0, 0, 0) 78%
+  );
+  mask-image: radial-gradient(
+    circle var(--spot-size) at var(--mx) var(--my),
+    rgba(0, 0, 0, 1) 0%,
+    rgba(0, 0, 0, 0.65) 38%,
+    rgba(0, 0, 0, 0) 78%
+  );
+  z-index: -1;
+  pointer-events: none;
+}
+
+
+@keyframes spotlight-breathe {
+  0% {
+    filter: blur(10px);
+  }
+  50% {
+    filter: blur(8px);
+  }
+  100% {
+    filter: blur(10px);
+  }
+}
+
 /* Home layout */
 .home-shell {
-  background: linear-gradient(180deg, #EFF2F8 0%, #ffffff 55%);
   min-height: 100vh;
 }
 
@@ -39,8 +103,10 @@
 }
 
 .home-quiz-card {
-  background: #EFF2F8;
-  border: 1px solid #F8D0D2;
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.35);
   border-radius: 16px;
   padding: 1.75rem;
   text-align: left;
@@ -90,8 +156,10 @@
 }
 
 .home-section {
-  background: #fff;
-  border: 1px solid #ebedf3;
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.35);
   border-radius: 14px;
   padding: 1.25rem 1.35rem;
   box-shadow: 0 12px 28px -24px rgba(15, 23, 42, 0.45);
@@ -139,7 +207,7 @@
 
 /* Knowledge page layout */
 .page-shell {
-  background: linear-gradient(180deg, #EFF2F8 0%, #ffffff 60%);
+  background: transparent;
   min-height: 100vh;
 }
 
@@ -179,8 +247,10 @@
 }
 
 .page-section {
-  background: #ffffff;
-  border: 1px solid #F8D0D2;
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.35);
   border-radius: 16px;
   padding: 1.4rem 1.5rem;
   margin-bottom: 1.5rem;
@@ -228,7 +298,9 @@
   margin-top: 0.9rem;
   padding: 1rem 1.1rem;
   border-left: 4px solid #2B92E4;
-  background: #EFF2F8;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(18px) saturate(170%);
+  -webkit-backdrop-filter: blur(18px) saturate(170%);
   border-radius: 10px;
   color: #1f2937;
   line-height: 1.65;
@@ -241,8 +313,10 @@
 }
 
 .page-subsection {
-  background: #EFF2F8;
-  border: 1px solid #F8D0D2;
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(18px) saturate(170%);
+  -webkit-backdrop-filter: blur(18px) saturate(170%);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 12px;
   padding: 1rem 1.05rem;
   box-shadow: 0 12px 28px -28px rgba(248, 181, 193, 0.3);
@@ -292,8 +366,10 @@
 }
 
 .reason-card {
-  background: #ffffff;
-  border: 1px solid #F8D0D2;
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.35);
   border-radius: 14px;
   padding: 1rem 1.05rem 1.1rem;
   box-shadow: 0 12px 32px -26px rgba(248, 181, 193, 0.3);
@@ -342,4 +418,47 @@
   100% {
     background-position: 0% 50%;
   }
+}
+
+/* Navigation "loang màu" effect */
+.nav-pill {
+  position: relative;
+  overflow: hidden;
+  outline: none;
+}
+
+.nav-pill::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, #2B92E4, #F8B5C1, #2B92E4);
+  background-size: 220% 220%;
+  background-position: 0% 50%;
+  opacity: 0;
+  transition: opacity 180ms ease;
+}
+
+.nav-pill .nav-pill-label {
+  position: relative;
+  z-index: 1;
+}
+
+.nav-pill:hover::before,
+.nav-pill:focus-visible::before {
+  opacity: 1;
+  animation: gradient-flow 2.4s ease-in-out infinite;
+}
+
+.nav-pill:hover,
+.nav-pill:focus-visible {
+  color: #ffffff;
+}
+
+.nav-pill-active::before {
+  opacity: 1;
+  animation: gradient-flow 2.6s ease-in-out infinite;
+}
+
+.nav-pill-active {
+  color: #ffffff;
 }
