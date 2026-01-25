@@ -14,6 +14,7 @@ export default function HomePage({ onStartQuiz }) {
           <div className="home-quiz-meta text-gray-800 text-base md:text-lg text-center">
             <div><strong>Số câu:</strong> 40 câu</div>
             <div><strong>Thời gian làm bài:</strong> 30 phút (khuyến nghị)</div>
+            <div><strong>Chú ý:</strong> Khi bạn làm kiểm tra xong hãy nhập tên để lưu lại kết quả</div>
           </div>
 
           <button
