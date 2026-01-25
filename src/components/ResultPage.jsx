@@ -31,7 +31,6 @@ export default function ResultPage({ score, onRestart }) {
     suggestions = [
       "Thể hiện mức độ đồng cảm sâu sắc, thấu hiểu cảm xúc và góc nhìn của người khác, từ đó xây dựng mối quan hệ hài hòa và tin cậy.",
       "Biết điều chỉnh cảm xúc linh hoạt và phù hợp, góp phần tạo môi trường làm việc tích cực và hiệu quả.",
-      "Có kỹ năng giao tiếp cảm xúc rất tốt, xử lý xung đột khéo léo và mang tính xây dựng.",
       "Luôn tiếp nhận phản hồi một cách cởi mở, biến thách thức thành cơ hội phát triển bản thân và tập thể."
     ];
     icon = "🌟";
@@ -40,9 +39,9 @@ export default function ResultPage({ score, onRestart }) {
     evaluation = "Chỉ số trí tuệ cảm xúc tốt";
     description = "Bạn có khả năng nhận diện và kiểm soát cảm xúc khá tốt, biết giữ bình tĩnh trong những tình huống áp lực.";
     suggestions = [
-      "Có sự thấu hiểu và đồng cảm với người khác, lắng nghe ý kiến và cảm xúc của tập thể trước khi đưa ra phán hồi.",
+      "Có sự thấu hiểu và đồng cảm với người khác, lắng nghe ý kiến và cảm xúc của tập thể trước khi đưa ra phản hồi.",
       "Biết điều chỉnh cảm xúc phù hợp với hoàn cảnh, tránh để cảm xúc cá nhân ảnh hưởng tiêu cực đến công việc và các mối quan hệ.",
-      "Có kỹ năng giao tiếp cảm xúc tích cực, thể hiện sự tôn trọng và hợp tác khi làm việc nhóm.",
+      "Có kỹ năng giao tiếp cảm xúc tích cực, thể hiện sự tôn trọng, hợp tác.",
       "Sẵn sàng tiếp nhận góp ý và biết chuyển phản hồi thành động lực cải thiện bản thân."
     ];
     icon = "✨";
@@ -52,8 +51,8 @@ export default function ResultPage({ score, onRestart }) {
     description = "Bạn có khả năng nhận biết cảm xúc của bản thân ở mức cơ bản, tuy nhiên đôi lúc vẫn để cảm xúc ảnh hưởng đến phản ứng hoặc quyết định.";
     suggestions = [
       "Có ý thức lắng nghe và tôn trọng người khác, nhưng mức độ đồng cảm và điều chỉnh cảm xúc chưa thật sự ổn định trong các tình huống áp lực.",
-      "Giao tiếp nhìn chung phù hợp, song cần cải thiện khả năng kiểm soát cảm xúc để tránh hiểu lầm hoặc căng thẳng không cần thiết.",
-      "Sẵn sàng tiếp nhận góp ý, nhưng cần chủ động hơn trong việc rèn luyện kỹ năng quản lý cảm xúc và xử lý xung đột."
+      "Giao tiếp nhìn chung phù hợp, song cần cải thiện khả năng kiểm soát cảm xúc để tránh hiểu lầm, căng thẳng không cần thiết.",
+      "Sẵn sàng tiếp nhận góp ý, nhưng cần chủ động hơn trong việc rèn luyện kỹ năng quản lý cảm xúc."
     ];
     icon = "💡";
     color = "from-blue-400 to-cyan-500";
@@ -73,7 +72,7 @@ export default function ResultPage({ score, onRestart }) {
     // Chỉ chạy confetti nếu điểm cao
     if (score >= 161) {
       setShowConfetti(true);
-      const timer = setTimeout(() => setShowConfetti(false), 5000);
+      const timer = setTimeout(() => setShowConfetti(false), 8000);
       return () => clearTimeout(timer);
     }
 
