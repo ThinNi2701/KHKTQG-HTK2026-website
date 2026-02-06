@@ -28,6 +28,22 @@ export default function HomePage({ onStartQuiz }) {
 
         <div className="home-body">
           <section className="home-section">
+            <h2 className="text-2xl font-bold text-gray-900 mb-3">Khám phá bộ thẻ EQ Card</h2>
+            <p className="text-gray-700 text-lg leading-relaxed text-justify">
+              Bộ thẻ EQ Card giúp bạn hiểu và thực hành nhận diện cảm xúc hằng ngày.
+            </p>
+            <a
+              href="https://trinh311006-cyber.github.io/eqcard/"
+              className="home-quiz-button"
+              style={{ display: "inline-block", marginTop: 12, textDecoration: "none" }}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Truy cập bộ thẻ EQ Card
+            </a>
+          </section>
+
+          <section className="home-section">
             <p className="text-gray-700 text-lg leading-relaxed text-justify">
               Trong thế giới hiện đại, trí tuệ cảm xúc (EQ) ngày càng được đánh giá cao, không chỉ trong công việc
               mà còn trong các mối quan hệ cá nhân. Khác với IQ, EQ đo lường khả năng nhận biết, hiểu và quản lý
